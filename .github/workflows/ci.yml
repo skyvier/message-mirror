@@ -20,6 +20,12 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
 
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+        with:
+          use-gha-cache: enabled
+          diagnostic-endpoint: ""
+
       - name: Typecheck
         run: |
           if [ -f tsconfig.json ]; then
@@ -38,6 +44,12 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+        with:
+          use-gha-cache: enabled
+          diagnostic-endpoint: ""
 
       - name: Build
         run: |
@@ -58,6 +70,12 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
 
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+        with:
+          use-gha-cache: enabled
+          diagnostic-endpoint: ""
+
       - name: Test
         run: nix develop --command node --test
 
@@ -71,6 +89,12 @@ jobs:
       - name: Install Nix
         uses: cachix/install-nix-action@v31
 
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+        with:
+          use-gha-cache: enabled
+          diagnostic-endpoint: ""
+
       - name: Lint
         run: nix develop --command biome lint --no-errors-on-unmatched .
 
@@ -83,6 +107,12 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@v31
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v14
+        with:
+          use-gha-cache: enabled
+          diagnostic-endpoint: ""
 
       - name: Check formatting
         run: nix develop --command biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .
