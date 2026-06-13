@@ -672,13 +672,13 @@ git branch --show-current
 
 If the user has already provided or opened a custom worktree, use that worktree.
 
-If no custom worktree has been provided, create one from the current branch using
-a descriptive branch name.
+If no custom worktree has been provided, create one under `./.worktrees` from the
+current branch using a descriptive branch name.
 
 Example:
 
 ```sh
-git worktree add ../message-mirror-<task-name> -b agent/<task-name>
+git worktree add .worktrees/<task-name> -b agent/<task-name>
 ```
 
 Use short, descriptive task names such as:
