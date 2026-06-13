@@ -26,13 +26,7 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Typecheck
-        run: |
-          if [ -f tsconfig.json ]; then
-            nix develop --command tsc --noEmit
-          else
-            echo "No tsconfig.json yet; verifying TypeScript is available."
-            nix develop --command tsc --version
-          fi
+        run: nix develop --command pnpm run typecheck
 
   build:
     name: Build
@@ -50,13 +44,7 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Build
-        run: |
-          if [ -f tsconfig.json ]; then
-            nix develop --command tsc
-          else
-            echo "No tsconfig.json yet; verifying TypeScript is available."
-            nix develop --command tsc --version
-          fi
+        run: nix develop --command pnpm run build
 
   test:
     name: Test
@@ -92,7 +80,7 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Lint
-        run: nix develop --command biome lint --no-errors-on-unmatched .
+        run: nix develop --command pnpm run lint
 
   prettifier:
     name: Prettifier
@@ -110,4 +98,4 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Check formatting
-        run: nix develop --command biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .
+        run: nix develop --command pnpm run format:check
