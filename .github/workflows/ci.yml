@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Typecheck
+        run: |
+          if [ -f tsconfig.json ]; then
+            nix develop --command tsc --noEmit
+          else
+            echo "No tsconfig.json yet; verifying TypeScript is available."
+            nix develop --command tsc --version
+          fi
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Build
+        run: |
+          if [ -f tsconfig.json ]; then
+            nix develop --command tsc
+          else
+            echo "No tsconfig.json yet; verifying TypeScript is available."
+            nix develop --command tsc --version
+          fi
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Test
+        run: nix develop --command node --test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Lint
+        run: nix develop --command biome lint --no-errors-on-unmatched .
+
+  prettifier:
+    name: Prettifier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Check formatting
+        run: nix develop --command biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .
