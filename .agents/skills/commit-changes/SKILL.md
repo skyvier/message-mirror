@@ -1,3 +1,8 @@
+---
+name: commit-changes
+description: Use when committing current working tree changes or splitting uncommitted work into commits
+---
+
 # Commit Changes
 
 Use this skill when the user asks to commit current working tree changes, split
@@ -316,4 +321,3 @@ Always:
 * use `commit-message-style` for messages
 * verify staged diff before committing
 * summarize what was committed
-

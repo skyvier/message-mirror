@@ -1,3 +1,8 @@
+---
+name: commit-message-style
+description: Use when writing, reviewing, or rewriting Git commit messages
+---
+
 # Commit Message Style
 
 Use this skill when writing, reviewing, or rewriting Git commit messages.
