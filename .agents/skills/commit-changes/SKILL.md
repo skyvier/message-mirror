@@ -32,15 +32,21 @@ The commit series should:
 ## High-level workflow
 
 1. Inspect the working tree.
-2. Suggest a commit split.
-3. Ask the user to approve the split.
-4. If the user disapproves, revise the split based on feedback.
-5. Repeat until the user approves.
-6. Stage and commit according to the approved split.
-7. Use `commit-message-style` for every commit message.
-8. Show the final commit summary.
+2. Decide whether the changes need multiple commits.
+3. If multiple commits are needed, suggest a commit split and ask the user to
+   approve it.
+4. If all changes belong in one commit, state that no split is needed and
+   continue without asking for split approval.
+5. If the user disapproves a proposed split, revise the split based on feedback.
+6. Repeat until the user approves any needed split.
+7. Stage and commit according to the approved split, or the single-commit plan
+   when no split is needed.
+8. Use `commit-message-style` for every commit message.
+9. Show the final commit summary.
 
-Do not stage or commit anything before the user approves the split.
+Do not stage or commit anything before the user approves the split, unless the
+inspection shows that all changes belong in one commit and no file-level split
+is needed.
 
 Approval of the commit split is approval to stage and commit the proposed
 commits using messages generated according to `commit-message-style`.
@@ -82,11 +88,30 @@ Look for:
 If suspicious files or possible secrets are found, stop and ask before including
 them.
 
-## Split proposal phase
+## Split decision phase
 
-Propose a commit split before mutating Git state.
+Decide whether the inspected changes require multiple commits before mutating
+Git state.
 
-The proposal must include:
+If all changes belong in one commit, do not ask the user to approve a split.
+Instead, state the single-commit plan briefly and continue:
+
+```text
+No split needed: all inspected changes belong in one commit.
+
+Commit:
+- <commit subject>
+
+Files:
+- path/to/file
+- path/to/other-file
+
+Rationale:
+<why these changes belong together>
+```
+
+If multiple commits are needed, propose a commit split before mutating Git
+state. The proposal must include:
 
 ```text
 Proposed split:
@@ -137,7 +162,7 @@ Bad split criteria:
 
 ## Approval gate
 
-After proposing the split, ask for approval.
+Ask for approval only when proposing multiple commits or a file-level split.
 
 Use wording like:
 
@@ -157,7 +182,11 @@ Approval can be explicit, such as:
 
 If the user disapproves or suggests changes, revise the split and ask again.
 
-Do not commit until the user has approved a specific split.
+When multiple commits or file-level splits are needed, do not commit until the
+user has approved a specific split.
+
+When there is no split, do not ask for split approval. Continue to staging and
+committing after stating the single-commit plan.
 
 Approval of a split means:
 
@@ -302,7 +331,9 @@ Remaining working tree:
 
 Never:
 
-* stage or commit before split approval
+* stage or commit before split approval when multiple commits or file-level
+  splits are needed
+* ask for split approval when all changes belong in one commit
 * ask for message-by-message approval after split approval unless explicitly
   requested
 * include suspicious secrets without asking
@@ -317,7 +348,8 @@ Never:
 Always:
 
 * inspect before proposing
-* ask for split approval
+* ask for split approval when more than one commit or a file-level split is
+  proposed
 * use `commit-message-style` for messages
 * verify staged diff before committing
 * summarize what was committed
