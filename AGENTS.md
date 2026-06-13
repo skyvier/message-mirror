@@ -118,7 +118,7 @@ Use:
 * Nix flakes
 * pinned dependencies
 * Ollama-compatible local analyzer backend
-* `llama3.1:8b` as the documented local model base
+* `Modelfile` as the source of truth for the local model base
 * custom system prompt for analyzer behavior
 
 Prefer:
@@ -736,4 +736,3 @@ When finishing a task, summarize:
 * any remaining risks or follow-up work
 
 Be explicit when tests were not run.
-
