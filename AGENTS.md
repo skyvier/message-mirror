@@ -59,7 +59,9 @@ Do not silently expand scope.
 Before finishing a task:
 
 * run relevant tests or explain why they were not run
-* run typecheck when TypeScript changed
+* run `nix develop --command pnpm run typecheck`
+* run `nix develop --command pnpm run lint`
+* run `nix develop --command pnpm run format:check`
 * inspect the diff
 * confirm no product behavior drifted from the spec
 * confirm no private input, prompt text, or raw model output is logged or exposed
@@ -720,6 +722,17 @@ commits using messages generated according to `commit-message-style`.
 
 Do not ask for separate approval of each commit message unless the user
 explicitly requests message review before committing.
+
+Before staging or committing code changes, run the local validation commands:
+
+```sh
+nix develop --command pnpm run typecheck
+nix develop --command pnpm run lint
+nix develop --command pnpm run format:check
+```
+
+If a command cannot be run, do not silently skip it. Explain why it was not run
+before committing.
 
 Never mention AI-agent assistance in commit messages.
 
