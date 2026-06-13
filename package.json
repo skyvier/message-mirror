@@ -1,0 +1,12 @@
+{
+  "name": "message-mirror",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.5.2",
+  "scripts": {
+    "build": "tsc",
+    "hello": "pnpm build && node -e \"import('./dist/hello.js').then(({ helloWorld }) => console.log(helloWorld()))\"",
+    "typecheck": "tsc --noEmit"
+  }
+}
