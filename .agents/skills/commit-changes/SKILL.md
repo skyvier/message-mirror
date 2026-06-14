@@ -23,7 +23,8 @@ The commit series should:
 
 * contain coherent commits
 * avoid unrelated changes in the same commit
-* preserve buildable / understandable history where practical
+* prefer self-contained commits that build and pass relevant tests where practical
+* preserve understandable history where practical
 * use clear commit messages
 * avoid committing accidental files
 * avoid committing secrets or private data
@@ -141,8 +142,18 @@ File-level split needed:
   - commit 2: CLI formatting changes
 ```
 
+Prefer self-contained coherent commits over work-in-progress commits. Each
+commit should include the code, tests, docs, schema updates, fixtures, and
+dependency changes needed for that commit to build and pass relevant tests where
+practical.
+
+Avoid splitting changes into commits that are intentionally broken, incomplete,
+or meaningful only after a later commit. If a theoretically cleaner split would
+leave intermediate commits failing typecheck, tests, schema validation, or the
+documented product contract, combine the changes or choose a different split.
+
 Prefer smaller coherent commits over one large commit, but do not split so much
-that the history becomes noisy.
+that the history becomes noisy or stops being buildable.
 
 Good split criteria:
 
@@ -152,6 +163,8 @@ Good split criteria:
 * refactors separate from behavior changes when practical
 * mechanical formatting separate from semantic changes
 * dependency or lockfile changes separate when they are large or risky
+* schema, fixture, and implementation changes together when separating them
+  would create a failing intermediate state
 
 Bad split criteria:
 
@@ -159,6 +172,8 @@ Bad split criteria:
 * separating tests from the code they validate without a reason
 * mixing formatting, refactoring, and behavior changes
 * hiding risky changes inside broad cleanup commits
+* creating work-in-progress commits that require later commits to restore a
+  passing build or test suite
 
 ## Approval gate
 
