@@ -10,7 +10,6 @@
   "scripts": {
     "build": "tsc",
     "format:check": "biome check --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .",
-    "hello": "pnpm build && node -e \"import('./dist/hello.js').then(({ helloWorld }) => console.log(helloWorld()))\"",
     "lint": "biome lint --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --no-errors-on-unmatched .",
     "test": "pnpm build && node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
