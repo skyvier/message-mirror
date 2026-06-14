@@ -25,14 +25,26 @@ export interface SuccessOutput {
   ];
 }
 
+type FakeScenario = (calibration: Calibration) => SuccessOutput;
+
+const fakeScenarios: Record<string, FakeScenario> = {
+  "success-calibrated": analyzeSuccessfulApology,
+  "success-unspecified": analyzeSuccessfulApology,
+};
+
 export function analyzeWithFakeScenario(
   calibration: Calibration,
   scenario: string | undefined,
 ): SuccessOutput {
-  if (scenario !== "success-calibrated") {
+  const fakeScenario = fakeScenarios[scenario ?? ""];
+  if (fakeScenario === undefined) {
     throw new Error("unsupported fake analyzer scenario");
   }
 
+  return fakeScenario(calibration);
+}
+
+function analyzeSuccessfulApology(calibration: Calibration): SuccessOutput {
   return {
     schema_version: "message-mirror.v1",
     ok: true,
