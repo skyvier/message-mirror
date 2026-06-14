@@ -1,0 +1,10 @@
+Usage: message-mirror [options]
+
+Analyze one draft message from stdin with a local-only analyzer. No draft messages, prompts, or model responses are retained by default.
+
+Options:
+  --relationship <relationship>  relationship calibration: friend, family, new_acquaintance, partner, coworker, manager, direct_report, client, ex
+  --goal <goal>                  goal calibration: apology, boundary, clarification, invitation, decline, feedback, repair, check_in, logistics, hard_conversation
+  --desired-tone <desiredTone>   desired tone calibration: warm, direct, gentle, firm, neutral, brief
+  -V, --version                  output the version number
+  -h, --help                     display help for command

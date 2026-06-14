@@ -2,7 +2,7 @@
 
 import { analyzeWithFakeScenario } from "../analyzer/fake.js";
 import { formatJson } from "../output/format.js";
-import { parseCalibrationFlags } from "./calibration.js";
+import { parseCliArgs } from "./args.js";
 
 const maxDraftLength = 10_000;
 const analyzerEnvName = "MESSAGE_MIRROR_ANALYZER";
@@ -11,8 +11,13 @@ const fakeScenarioEnvName = "MESSAGE_MIRROR_FAKE_SCENARIO";
 void main();
 
 async function main(): Promise<void> {
-  const calibrationResult = parseCalibrationFlags(process.argv.slice(2));
+  const calibrationResult = parseCliArgs(process.argv.slice(2));
   if (!calibrationResult.ok) {
+    if (calibrationResult.kind === "stdout") {
+      process.stdout.write(calibrationResult.message);
+      return;
+    }
+
     failWithUsageError(calibrationResult.message);
     return;
   }
