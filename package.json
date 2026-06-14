@@ -14,5 +14,8 @@
     "lint": "biome lint --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --no-errors-on-unmatched .",
     "test": "pnpm build && node --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.2"
   }
 }
