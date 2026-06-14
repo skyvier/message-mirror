@@ -457,18 +457,18 @@ The production default is the real local analyzer backend.
 Success and refusal cases use:
 
 ```text
-tests/golden/<case>.stdin
-tests/golden/<case>.args
-tests/golden/<case>.stdout.json
+tests/golden/<case>/stdin
+tests/golden/<case>/args
+tests/golden/<case>/stdout.json
 ```
 
 Error cases use:
 
 ```text
-tests/golden/<case>.stdin
-tests/golden/<case>.args
-tests/golden/<case>.stderr
-tests/golden/<case>.exit
+tests/golden/<case>/stdin
+tests/golden/<case>/args
+tests/golden/<case>/stderr
+tests/golden/<case>/exit
 ```
 
 ### Minimum Golden Suite

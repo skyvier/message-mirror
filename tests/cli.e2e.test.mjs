@@ -22,24 +22,27 @@ for (const goldenCase of goldenCases) {
 }
 
 async function discoverGoldenCases() {
-  const files = await readdir(goldenDir);
-  const caseNames = files
-    .filter((file) => file.endsWith(".stdin"))
-    .map((file) => file.slice(0, -".stdin".length))
+  const entries = await readdir(goldenDir, { withFileTypes: true });
+  const caseNames = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
     .sort();
+
+  assert.notEqual(caseNames.length, 0, "expected at least one golden fixture");
 
   return Promise.all(caseNames.map(readGoldenCase));
 }
 
 async function readGoldenCase(name) {
+  const caseDir = new URL(`${name}/`, goldenDir);
   const [stdin, args] = await Promise.all([
-    readFixture(`${name}.stdin`),
-    readFixture(`${name}.args`),
+    readFixture(caseDir, "stdin"),
+    readFixture(caseDir, "args"),
   ]);
 
   const stdout =
-    (await readOptionalFixture(`${name}.stdout.json`)) ??
-    (await readOptionalFixture(`${name}.stdout`));
+    (await readOptionalFixture(caseDir, "stdout.json")) ??
+    (await readOptionalFixture(caseDir, "stdout"));
   if (stdout !== undefined) {
     return {
       name,
@@ -52,8 +55,8 @@ async function readGoldenCase(name) {
   }
 
   const [stderr, exitText] = await Promise.all([
-    readFixture(`${name}.stderr`),
-    readFixture(`${name}.exit`),
+    readFixture(caseDir, "stderr"),
+    readFixture(caseDir, "exit"),
   ]);
 
   return {
@@ -66,13 +69,13 @@ async function readGoldenCase(name) {
   };
 }
 
-async function readFixture(fileName) {
-  return readFile(new URL(fileName, goldenDir), "utf8");
+async function readFixture(caseDir, fileName) {
+  return readFile(new URL(fileName, caseDir), "utf8");
 }
 
-async function readOptionalFixture(fileName) {
+async function readOptionalFixture(caseDir, fileName) {
   try {
-    return await readFixture(fileName);
+    return await readFixture(caseDir, fileName);
   } catch (error) {
     if (error && error.code === "ENOENT") {
       return undefined;
