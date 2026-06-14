@@ -1,74 +1,98 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
+import { readdir, readFile } from "node:fs/promises";
 import { test } from "node:test";
 
-test("fake analyzer success emits calibrated v1 JSON from stdin", async () => {
-  const result = await runCli({
-    args: ["--relationship", "friend", "--goal", "apology", "--desired-tone", "warm"],
-    stdin: "  I am sorry I was short with you yesterday.  \n",
-    env: {
-      MESSAGE_MIRROR_ANALYZER: "fake",
-      MESSAGE_MIRROR_FAKE_SCENARIO: "success-calibrated",
-    },
+const goldenDir = new URL("./golden/", import.meta.url);
+
+const goldenCases = await discoverGoldenCases();
+
+for (const goldenCase of goldenCases) {
+  test(`golden fixture ${goldenCase.name}`, async () => {
+    const result = await runCli({
+      args: goldenCase.args,
+      stdin: goldenCase.stdin,
+      scenario: goldenCase.name,
+    });
+
+    assert.equal(result.exitCode, goldenCase.exitCode);
+    assert.equal(result.stdout, goldenCase.stdout);
+    assert.equal(result.stderr, goldenCase.stderr);
   });
+}
 
-  assert.equal(result.exitCode, 0);
-  assert.equal(result.stderr, "");
-  assert.equal(
-    result.stdout,
-    `${JSON.stringify(
-      {
-        schema_version: "message-mirror.v1",
-        ok: true,
-        metadata: {
-          input_source: "stdin",
-          privacy: {
-            local_only: true,
-            retained: false,
-          },
-          calibration: {
-            relationship: "friend",
-            goal: "apology",
-            desired_tone: "warm",
-          },
-        },
-        analysis: {
-          apparent_intent: "Apologize for a tense moment and reopen the conversation respectfully.",
-          emotional_tone: ["accountable", "warm"],
-          possible_interpretations: [
-            "The recipient may hear a clear apology without pressure to respond immediately.",
-          ],
-          risks_or_ambiguities: [],
-          hidden_needs_or_assumptions: [],
-        },
-        alternatives: [
-          {
-            label: "direct",
-            text: "I am sorry I was short with you yesterday. That was unfair, and I will handle it differently next time.",
-            why: "Names the apology plainly and keeps responsibility with the sender.",
-          },
-          {
-            label: "warm",
-            text: "I am sorry I was short with you yesterday. I care about our friendship and did not want to leave it there.",
-            why: "Adds care while preserving the apology.",
-          },
-          {
-            label: "boundaried",
-            text: "I am sorry I was short with you yesterday. I wanted to acknowledge it, and there is no pressure to respond right away.",
-            why: "Offers repair while respecting the recipient's autonomy.",
-          },
-        ],
-      },
-      null,
-      2,
-    )}\n`,
-  );
-});
+async function discoverGoldenCases() {
+  const files = await readdir(goldenDir);
+  const caseNames = files
+    .filter((file) => file.endsWith(".stdin"))
+    .map((file) => file.slice(0, -".stdin".length))
+    .sort();
 
-function runCli({ args, stdin, env }) {
+  return Promise.all(caseNames.map(readGoldenCase));
+}
+
+async function readGoldenCase(name) {
+  const [stdin, args] = await Promise.all([
+    readFixture(`${name}.stdin`),
+    readFixture(`${name}.args`),
+  ]);
+
+  const stdout =
+    (await readOptionalFixture(`${name}.stdout.json`)) ??
+    (await readOptionalFixture(`${name}.stdout`));
+  if (stdout !== undefined) {
+    return {
+      name,
+      stdin,
+      args: parseArgs(args),
+      exitCode: 0,
+      stdout,
+      stderr: "",
+    };
+  }
+
+  const [stderr, exitText] = await Promise.all([
+    readFixture(`${name}.stderr`),
+    readFixture(`${name}.exit`),
+  ]);
+
+  return {
+    name,
+    stdin,
+    args: parseArgs(args),
+    exitCode: Number.parseInt(exitText.trim(), 10),
+    stdout: "",
+    stderr,
+  };
+}
+
+async function readFixture(fileName) {
+  return readFile(new URL(fileName, goldenDir), "utf8");
+}
+
+async function readOptionalFixture(fileName) {
+  try {
+    return await readFixture(fileName);
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+function parseArgs(args) {
+  return args.trim().length === 0 ? [] : args.trim().split(/\s+/);
+}
+
+function runCli({ args, stdin, scenario }) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["dist/cli/main.js", ...args], {
-      env: { ...process.env, ...env },
+      env: {
+        ...process.env,
+        MESSAGE_MIRROR_ANALYZER: "fake",
+        MESSAGE_MIRROR_FAKE_SCENARIO: scenario,
+      },
       stdio: ["pipe", "pipe", "pipe"],
     });
 

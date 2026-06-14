@@ -1,0 +1,2 @@
+error: invalid value 'make_them_reply' for --goal
+allowed values: apology, boundary, clarification, invitation, decline, feedback, repair, check_in, logistics, hard_conversation
