@@ -62,7 +62,7 @@ jobs:
           diagnostic-endpoint: ""
 
       - name: Test
-        run: nix develop --command node --test
+        run: nix develop --command pnpm run test
 
   lint:
     name: Lint
