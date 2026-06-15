@@ -53,7 +53,9 @@ async function main(): Promise<void> {
     process.stdout.write(formatJson(output));
   } catch (error) {
     if (error instanceof RepairExhaustedError) {
-      failWithInternalError("error: analyzer returned invalid schema after 3 repair attempts");
+      failWithInternalError(
+        `error: analyzer returned invalid schema after ${error.attempts} repair attempts`,
+      );
     } else {
       failWithInternalError("error: local analyzer backend unavailable");
     }
