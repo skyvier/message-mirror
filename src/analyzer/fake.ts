@@ -1,29 +1,5 @@
 import type { Calibration } from "../cli/calibration.js";
-
-export interface SuccessOutput {
-  schema_version: "message-mirror.v1";
-  ok: true;
-  metadata: {
-    input_source: "stdin";
-    privacy: {
-      local_only: true;
-      retained: false;
-    };
-    calibration: Calibration;
-  };
-  analysis: {
-    apparent_intent: string;
-    emotional_tone: string[];
-    possible_interpretations: string[];
-    risks_or_ambiguities: string[];
-    hidden_needs_or_assumptions: string[];
-  };
-  alternatives: [
-    { label: "direct"; text: string; why: string },
-    { label: "warm"; text: string; why: string },
-    { label: "boundaried"; text: string; why: string },
-  ];
-}
+import type { SuccessOutput } from "../output/schema.js";
 
 type FakeScenario = (calibration: Calibration) => SuccessOutput;
 
