@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SuccessOutput"
+    },
+    {
+      "$ref": "#/$defs/RefusalOutput"
+    }
+  ],
+  "$defs": {
+    "SuccessOutput": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "message-mirror.v1"
+        },
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "metadata": {
+          "$ref": "#/$defs/Metadata"
+        },
+        "analysis": {
+          "$ref": "#/$defs/Analysis"
+        },
+        "alternatives": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "const": "direct"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "why": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["label", "text", "why"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "const": "warm"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "why": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["label", "text", "why"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "const": "boundaried"
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "why": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": ["label", "text", "why"],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": ["schema_version", "ok", "metadata", "analysis", "alternatives"],
+      "additionalProperties": false
+    },
+    "Metadata": {
+      "type": "object",
+      "properties": {
+        "input_source": {
+          "type": "string",
+          "const": "stdin"
+        },
+        "privacy": {
+          "$ref": "#/$defs/Privacy"
+        },
+        "calibration": {
+          "$ref": "#/$defs/Calibration"
+        }
+      },
+      "required": ["input_source", "privacy", "calibration"],
+      "additionalProperties": false
+    },
+    "Privacy": {
+      "type": "object",
+      "properties": {
+        "local_only": {
+          "type": "boolean",
+          "const": true
+        },
+        "retained": {
+          "type": "boolean",
+          "const": false
+        }
+      },
+      "required": ["local_only", "retained"],
+      "additionalProperties": false
+    },
+    "Calibration": {
+      "type": "object",
+      "properties": {
+        "relationship": {
+          "type": "string",
+          "enum": [
+            "friend",
+            "family",
+            "new_acquaintance",
+            "partner",
+            "coworker",
+            "manager",
+            "direct_report",
+            "client",
+            "ex",
+            "unspecified"
+          ]
+        },
+        "goal": {
+          "type": "string",
+          "enum": [
+            "apology",
+            "boundary",
+            "clarification",
+            "invitation",
+            "decline",
+            "feedback",
+            "repair",
+            "check_in",
+            "logistics",
+            "hard_conversation",
+            "unspecified"
+          ]
+        },
+        "desired_tone": {
+          "type": "string",
+          "enum": ["warm", "direct", "gentle", "firm", "neutral", "brief", "unspecified"]
+        }
+      },
+      "required": ["relationship", "goal", "desired_tone"],
+      "additionalProperties": false
+    },
+    "Analysis": {
+      "type": "object",
+      "properties": {
+        "apparent_intent": {
+          "type": "string",
+          "minLength": 1
+        },
+        "emotional_tone": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "possible_interpretations": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "risks_or_ambiguities": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "hidden_needs_or_assumptions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "apparent_intent",
+        "emotional_tone",
+        "possible_interpretations",
+        "risks_or_ambiguities",
+        "hidden_needs_or_assumptions"
+      ],
+      "additionalProperties": false
+    },
+    "RefusalOutput": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "const": "message-mirror.v1"
+        },
+        "ok": {
+          "type": "boolean",
+          "const": false
+        },
+        "metadata": {
+          "$ref": "#/$defs/Metadata"
+        },
+        "refusal": {
+          "$ref": "#/$defs/Refusal"
+        }
+      },
+      "required": ["schema_version", "ok", "metadata", "refusal"],
+      "additionalProperties": false
+    },
+    "Refusal": {
+      "type": "object",
+      "properties": {
+        "category": {
+          "type": "string",
+          "enum": [
+            "manipulation",
+            "coercion",
+            "deception",
+            "guilt_pressure",
+            "jealousy_induction",
+            "threat",
+            "harassment",
+            "consent_evasion",
+            "exploitation",
+            "unsafe_other"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "safer_frame": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": ["category", "reason", "safer_frame"],
+      "additionalProperties": false
+    }
+  }
+}

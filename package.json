@@ -12,12 +12,15 @@
     "format:check": "biome check --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .",
     "lint": "biome lint --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --no-errors-on-unmatched .",
     "test": "pnpm build && node --test tests/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:schema": "tsx scripts/generate-schema.ts && biome format --write schema/message-mirror.v1.schema.json"
   },
   "devDependencies": {
-    "@types/node": "^24.13.2"
+    "@types/node": "^24.13.2",
+    "tsx": "^4.22.4"
   },
   "dependencies": {
-    "commander": "^15.0.0"
+    "commander": "^15.0.0",
+    "zod": "^4.4.3"
   }
 }
