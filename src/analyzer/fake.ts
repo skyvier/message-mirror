@@ -1,26 +1,33 @@
 import type { Calibration } from "../cli/calibration.js";
-import type { SuccessOutput } from "../output/schema.js";
+import type { AnalyzerOutput, RefusalOutput, SuccessOutput } from "../output/schema.js";
+import type { Analyzer } from "./types.js";
 
-type FakeScenario = (calibration: Calibration) => SuccessOutput;
+type ScenarioFn = (calibration: Calibration) => AnalyzerOutput;
 
-const fakeScenarios: Record<string, FakeScenario> = {
-  "success-calibrated": analyzeSuccessfulApology,
-  "success-unspecified": analyzeSuccessfulApology,
+const scenarios: Record<string, ScenarioFn> = {
+  "success-calibrated": successfulApology,
+  "success-unspecified": successfulApology,
+  "success-multiline": successfulApology,
+  "refusal-guilt-pressure": refusalGuiltPressure,
 };
 
-export function analyzeWithFakeScenario(
-  calibration: Calibration,
-  scenario: string | undefined,
-): SuccessOutput {
-  const fakeScenario = fakeScenarios[scenario ?? ""];
-  if (fakeScenario === undefined) {
-    throw new Error("unsupported fake analyzer scenario");
+export function createFakeAnalyzer(scenario: string | undefined): Analyzer {
+  const fn = scenarios[scenario ?? ""];
+  if (fn === undefined) {
+    throw new Error(`unsupported fake analyzer scenario: ${String(scenario)}`);
   }
-
-  return fakeScenario(calibration);
+  return new FakeAnalyzer(fn);
 }
 
-function analyzeSuccessfulApology(calibration: Calibration): SuccessOutput {
+class FakeAnalyzer implements Analyzer {
+  constructor(private readonly scenarioFn: ScenarioFn) {}
+
+  async analyze(_draft: string, calibration: Calibration): Promise<AnalyzerOutput> {
+    return this.scenarioFn(calibration);
+  }
+}
+
+function successfulApology(calibration: Calibration): SuccessOutput {
   return {
     schema_version: "message-mirror.v1",
     ok: true,
@@ -58,5 +65,27 @@ function analyzeSuccessfulApology(calibration: Calibration): SuccessOutput {
         why: "Offers repair while respecting the recipient's autonomy.",
       },
     ],
+  };
+}
+
+function refusalGuiltPressure(calibration: Calibration): RefusalOutput {
+  return {
+    schema_version: "message-mirror.v1",
+    ok: false,
+    metadata: {
+      input_source: "stdin",
+      privacy: {
+        local_only: true,
+        retained: false,
+      },
+      calibration,
+    },
+    refusal: {
+      category: "guilt_pressure",
+      reason:
+        "The draft pressures the recipient to respond through guilt rather than direct communication.",
+      safer_frame:
+        "State your feelings and request clearly while leaving the recipient free to choose whether to respond.",
+    },
   };
 }

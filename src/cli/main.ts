@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
-import { analyzeWithFakeScenario } from "../analyzer/fake.js";
+import { createFakeAnalyzer } from "../analyzer/fake.js";
 import { formatJson } from "../output/format.js";
 import { parseCliArgs } from "./args.js";
+import { readStdin } from "./input.js";
 
 const maxDraftLength = 10_000;
 const analyzerEnvName = "MESSAGE_MIRROR_ANALYZER";
@@ -39,29 +40,12 @@ async function main(): Promise<void> {
   }
 
   try {
-    const output = analyzeWithFakeScenario(
-      calibrationResult.calibration,
-      process.env[fakeScenarioEnvName],
-    );
+    const analyzer = createFakeAnalyzer(process.env[fakeScenarioEnvName]);
+    const output = await analyzer.analyze(draft, calibrationResult.calibration);
     process.stdout.write(formatJson(output));
   } catch (_error) {
     failWithInternalError("error: local analyzer backend unavailable");
   }
-}
-
-function readStdin(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    let input = "";
-
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("data", (chunk) => {
-      input += chunk;
-    });
-    process.stdin.on("end", () => {
-      resolve(input);
-    });
-    process.stdin.on("error", reject);
-  });
 }
 
 function failWithUsageError(message: string): void {
@@ -69,6 +53,7 @@ function failWithUsageError(message: string): void {
   process.exitCode = 1;
 }
 
+// Kept distinct from failWithUsageError — exit code and format may diverge in a future slice.
 function failWithInternalError(message: string): void {
   process.stderr.write(`${message}\n`);
   process.exitCode = 1;
