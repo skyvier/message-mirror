@@ -42,6 +42,8 @@ async function main(): Promise<void> {
   try {
     const analyzer = createFakeAnalyzer(process.env[fakeScenarioEnvName]);
     const output = await analyzer.analyze(draft, calibrationResult.calibration);
+    // Runtime schema validation happens inside the Analyzer chain. The repair loop
+    // (next slice) intercepts validation failures before they reach this point.
     process.stdout.write(formatJson(output));
   } catch (_error) {
     failWithInternalError("error: local analyzer backend unavailable");
