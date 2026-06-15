@@ -1,0 +1,21 @@
+{
+  "schema_version": "message-mirror.v1",
+  "ok": false,
+  "metadata": {
+    "input_source": "stdin",
+    "privacy": {
+      "local_only": true,
+      "retained": false
+    },
+    "calibration": {
+      "relationship": "partner",
+      "goal": "repair",
+      "desired_tone": "firm"
+    }
+  },
+  "refusal": {
+    "category": "guilt_pressure",
+    "reason": "The draft pressures the recipient to respond through guilt rather than direct communication.",
+    "safer_frame": "State your feelings and request clearly while leaving the recipient free to choose whether to respond."
+  }
+}
