@@ -6,8 +6,12 @@ import type { Analyzer } from "./types.js";
 
 type ScenarioFn = (calibration: Calibration) => AnalyzerOutput;
 
-// Both malformed scenarios use the same initial-response function — the difference
-// between them is in FakeRepairAPI, which controls whether repair succeeds or not.
+// The two exhausted-repair scenarios test distinct failure modes named in the spec:
+//   malformed-model-exhausted:           model returns valid JSON that fails the schema
+//   malformed-model-plain-text-exhausted: model returns plain text (not JSON at all)
+// Both should exhaust repair and exit non-zero with the same error message.
+// They are separate fixtures to prove the repair loop handles each path,
+// not just the schema-invalid case.
 const scenarios: Record<string, ScenarioFn> = {
   "success-calibrated": successfulApology,
   "success-unspecified": successfulApology,
@@ -15,6 +19,7 @@ const scenarios: Record<string, ScenarioFn> = {
   "refusal-guilt-pressure": refusalGuiltPressure,
   "malformed-model-repaired": malformedInitialResponse,
   "malformed-model-exhausted": malformedInitialResponse,
+  "malformed-model-plain-text-exhausted": malformedPlainTextResponse,
 };
 
 export function createFakeAnalyzer(scenario: string | undefined): Analyzer {
@@ -56,8 +61,12 @@ class FakeRepairAPI implements ModelRepairAPI {
       return JSON.stringify(successfulApology(allUnspecifiedCalibration));
     }
     if (this.scenario === "malformed-model-exhausted") {
-      // Always returns invalid JSON — RepairingAnalyzer will exhaust all attempts.
+      // Always returns schema-invalid JSON — RepairingAnalyzer will exhaust all attempts.
       return '{"broken":true}';
+    }
+    if (this.scenario === "malformed-model-plain-text-exhausted") {
+      // Always returns plain text — RepairingAnalyzer will exhaust all attempts.
+      return "Sure! Here is your analysis. The tone is warm and apologetic.";
     }
     throw new Error(
       `FakeRepairAPI: repair() called for non-malformed scenario: ${String(this.scenario)}`,
@@ -67,6 +76,12 @@ class FakeRepairAPI implements ModelRepairAPI {
 
 function malformedInitialResponse(_calibration: Calibration): AnalyzerOutput {
   throw new InvalidAnalyzerOutputError('{"broken":true}');
+}
+
+function malformedPlainTextResponse(_calibration: Calibration): AnalyzerOutput {
+  throw new InvalidAnalyzerOutputError(
+    "Sure! Here is your analysis. The tone is warm and apologetic.",
+  );
 }
 
 function successfulApology(calibration: Calibration): SuccessOutput {
