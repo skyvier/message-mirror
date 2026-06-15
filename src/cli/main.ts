@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-import { createFakeAnalyzer } from "../analyzer/fake.js";
+import { RepairExhaustedError } from "../analyzer/errors.js";
+import { createFakeAnalyzer, createFakeRepairApi } from "../analyzer/fake.js";
+import { RepairingAnalyzer } from "../analyzer/repairing.js";
 import { formatJson } from "../output/format.js";
 import { parseCliArgs } from "./args.js";
 import { readStdin } from "./input.js";
@@ -40,13 +42,21 @@ async function main(): Promise<void> {
   }
 
   try {
-    const analyzer = createFakeAnalyzer(process.env[fakeScenarioEnvName]);
+    const scenario = process.env[fakeScenarioEnvName];
+    const analyzer = new RepairingAnalyzer(
+      createFakeAnalyzer(scenario),
+      createFakeRepairApi(scenario),
+    );
     const output = await analyzer.analyze(draft, calibrationResult.calibration);
-    // Runtime schema validation happens inside the Analyzer chain. The repair loop
-    // (next slice) intercepts validation failures before they reach this point.
+    // Runtime schema validation and repair happen inside RepairingAnalyzer.
+    // main.ts trusts the Analyzer interface contract: returns AnalyzerOutput or throws.
     process.stdout.write(formatJson(output));
-  } catch (_error) {
-    failWithInternalError("error: local analyzer backend unavailable");
+  } catch (error) {
+    if (error instanceof RepairExhaustedError) {
+      failWithInternalError("error: analyzer returned invalid schema after 3 repair attempts");
+    } else {
+      failWithInternalError("error: local analyzer backend unavailable");
+    }
   }
 }
 
