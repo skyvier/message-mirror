@@ -55,7 +55,13 @@ class FakeRepairAPI implements ModelRepairAPI {
     if (this.scenario === "malformed-model-repaired") {
       return JSON.stringify(successfulApology(allUnspecifiedCalibration));
     }
-    return '{"broken":true}';
+    if (this.scenario === "malformed-model-exhausted") {
+      // Always returns invalid JSON — RepairingAnalyzer will exhaust all attempts.
+      return '{"broken":true}';
+    }
+    throw new Error(
+      `FakeRepairAPI: repair() called for non-malformed scenario: ${String(this.scenario)}`,
+    );
   }
 }
 
