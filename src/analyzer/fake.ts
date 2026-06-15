@@ -1,14 +1,20 @@
 import type { Calibration } from "../cli/calibration.js";
 import type { AnalyzerOutput, RefusalOutput, SuccessOutput } from "../output/schema.js";
+import { InvalidAnalyzerOutputError } from "./errors.js";
+import type { ModelRepairAPI } from "./repairing.js";
 import type { Analyzer } from "./types.js";
 
 type ScenarioFn = (calibration: Calibration) => AnalyzerOutput;
 
+// Both malformed scenarios use the same initial-response function — the difference
+// between them is in FakeRepairAPI, which controls whether repair succeeds or not.
 const scenarios: Record<string, ScenarioFn> = {
   "success-calibrated": successfulApology,
   "success-unspecified": successfulApology,
   "success-multiline": successfulApology,
   "refusal-guilt-pressure": refusalGuiltPressure,
+  "malformed-model-repaired": malformedInitialResponse,
+  "malformed-model-exhausted": malformedInitialResponse,
 };
 
 export function createFakeAnalyzer(scenario: string | undefined): Analyzer {
@@ -19,12 +25,42 @@ export function createFakeAnalyzer(scenario: string | undefined): Analyzer {
   return new FakeAnalyzer(fn);
 }
 
+export function createFakeRepairApi(scenario: string | undefined): ModelRepairAPI {
+  if (scenarios[scenario ?? ""] === undefined) {
+    throw new Error(`unsupported fake analyzer scenario: ${String(scenario)}`);
+  }
+  return new FakeRepairAPI(scenario);
+}
+
 class FakeAnalyzer implements Analyzer {
   constructor(private readonly scenarioFn: ScenarioFn) {}
 
   async analyze(_draft: string, calibration: Calibration): Promise<AnalyzerOutput> {
     return this.scenarioFn(calibration);
   }
+}
+
+// Hardcoded to all-unspecified because repair calls do not receive calibration —
+// the repair API only sees the malformed payload, never the original request.
+const allUnspecifiedCalibration: Calibration = {
+  relationship: "unspecified",
+  goal: "unspecified",
+  desired_tone: "unspecified",
+};
+
+class FakeRepairAPI implements ModelRepairAPI {
+  constructor(private readonly scenario: string | undefined) {}
+
+  async repair(_malformed: string): Promise<string> {
+    if (this.scenario === "malformed-model-repaired") {
+      return JSON.stringify(successfulApology(allUnspecifiedCalibration));
+    }
+    return '{"broken":true}';
+  }
+}
+
+function malformedInitialResponse(_calibration: Calibration): AnalyzerOutput {
+  throw new InvalidAnalyzerOutputError('{"broken":true}');
 }
 
 function successfulApology(calibration: Calibration): SuccessOutput {
