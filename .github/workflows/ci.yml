@@ -28,6 +28,9 @@ jobs:
       - name: Typecheck
         run: nix develop --command pnpm run typecheck
 
+      - name: Typecheck test suite
+        run: nix develop --command pnpm run typecheck:test
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -63,6 +66,9 @@ jobs:
 
       - name: Test
         run: nix develop --command pnpm run test
+
+      - name: Property tests
+        run: nix develop --command pnpm run test:property
 
   lint:
     name: Lint
