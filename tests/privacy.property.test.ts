@@ -50,14 +50,16 @@ function assertNoDraftLeak(draft: string, stdout: string, stderr: string): void 
 }
 
 // Arbitrary non-empty draft text with a minimum length that makes the sentinel detectable.
-const draftArb = fc.string({ minLength: 4, maxLength: 200 }).filter((s) => s.trim().length >= 4);
+// 30 chars avoids false positives where a short draft happens to be a substring of a fixed
+// error string (e.g. "error: local analyzer backend unavailable").
+const draftArb = fc.string({ minLength: 30, maxLength: 200 }).filter((s) => s.trim().length >= 30);
 
 // Goal values that are definitely not in the allowed enum.
 const invalidGoalArb = fc
   .string({ minLength: 1 })
   .filter((s) => !["apology","boundary","clarification","invitation","decline","feedback","repair","check_in","logistics","hard_conversation"].includes(s));
 
-test("adversarial analyzer: Error(draft) does not appear in stderr", async () => {
+test("adversarial analyzer: plain Error thrown by analyzer does not leak draft to stderr", async () => {
   await fc.assert(
     fc.asyncProperty(draftArb, async (draft) => {
       const adversarial: Analyzer = {
@@ -65,10 +67,13 @@ test("adversarial analyzer: Error(draft) does not appear in stderr", async () =>
           throw new Error(d);
         },
       };
+      // Plain Error is re-thrown by RepairingAnalyzer before repair is attempted.
+      // This repair API should never be called — it throws to surface any regression.
+      const repairApi: ModelRepairAPI = {
+        repair: async () => { throw new Error("repair must not be called for plain Error"); },
+      };
       const { io, stdout, stderr } = makeIO(draft);
-      await runCli([], io, new RepairingAnalyzer(adversarial, {
-        repair: async () => '{"broken":true}',
-      }));
+      await runCli([], io, new RepairingAnalyzer(adversarial, repairApi));
       assertNoDraftLeak(draft, stdout(), stderr());
     }),
     { numRuns: 100 },
