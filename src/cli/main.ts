@@ -21,8 +21,7 @@ const maxDraftLength = 10_000;
 const analyzerEnvName = "MESSAGE_MIRROR_ANALYZER";
 const fakeScenarioEnvName = "MESSAGE_MIRROR_FAKE_SCENARIO";
 
-// Only run when executed directly, not when imported by tests.
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+if (isEntryModule(import.meta.url)) {
   void runCli(process.argv.slice(2), {
     stdin: process.stdin,
     stdout: process.stdout,
@@ -87,4 +86,10 @@ function buildAnalyzer(io: IO): Analyzer | null {
 function writeError(io: IO, message: string): void {
   io.stderr.write(`${message}\n`);
   io.setExitCode(1);
+}
+
+// True when Node.js was invoked with this file as the entry script,
+// false when this module was imported by another module (e.g. in tests).
+function isEntryModule(moduleUrl: string): boolean {
+  return process.argv[1] === fileURLToPath(moduleUrl);
 }
