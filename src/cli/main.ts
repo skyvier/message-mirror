@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import type { Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
 import { RepairExhaustedError } from "../analyzer/errors.js";
 import { createFakeAnalyzer, createFakeRepairApi } from "../analyzer/fake.js";
 import { RepairingAnalyzer } from "../analyzer/repairing.js";
@@ -20,14 +21,17 @@ const maxDraftLength = 10_000;
 const analyzerEnvName = "MESSAGE_MIRROR_ANALYZER";
 const fakeScenarioEnvName = "MESSAGE_MIRROR_FAKE_SCENARIO";
 
-void runCli(process.argv.slice(2), {
-  stdin: process.stdin,
-  stdout: process.stdout,
-  stderr: process.stderr,
-  setExitCode: (code) => {
-    process.exitCode = code;
-  },
-});
+// Only run when executed directly, not when imported by tests.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  void runCli(process.argv.slice(2), {
+    stdin: process.stdin,
+    stdout: process.stdout,
+    stderr: process.stderr,
+    setExitCode: (code) => {
+      process.exitCode = code;
+    },
+  });
+}
 
 export async function runCli(
   args: string[],
@@ -60,6 +64,8 @@ export async function runCli(
 
   try {
     const output = await analyzer.analyze(draft, calibrationResult.calibration);
+    // Runtime schema validation and repair happen inside RepairingAnalyzer.
+    // runCli trusts the Analyzer interface contract: returns AnalyzerOutput or throws.
     io.stdout.write(formatJson(output));
   } catch (error) {
     if (error instanceof RepairExhaustedError) {
