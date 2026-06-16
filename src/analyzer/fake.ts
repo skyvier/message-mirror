@@ -16,6 +16,7 @@ const scenarios: Record<string, ScenarioFn> = {
   "success-calibrated": successfulApology,
   "success-unspecified": successfulApology,
   "success-multiline": successfulApology,
+  "privacy-no-input-leak": successfulApology,
   "refusal-guilt-pressure": refusalGuiltPressure,
   "malformed-model-repaired": malformedInitialResponse,
   "malformed-model-exhausted": malformedInitialResponse,
