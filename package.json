@@ -14,6 +14,7 @@
     "test": "pnpm build && node --test tests/*.test.mjs",
     "test:property": "tsx --test tests/privacy.property.test.ts",
     "typecheck": "tsc --noEmit",
+    "typecheck:test": "tsc -p tsconfig.test.json --noEmit",
     "generate:schema": "tsx scripts/generate-schema.ts && biome format --write schema/message-mirror.v1.schema.json"
   },
   "devDependencies": {
