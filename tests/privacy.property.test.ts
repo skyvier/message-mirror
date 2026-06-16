@@ -15,8 +15,16 @@ function makeIO(draft: string): { io: IO; stdout(): string; stderr(): string } {
   let err = "";
   const io: IO = {
     stdin: Readable.from([draft]),
-    stdout: { write: (s: string) => { out += s; } },
-    stderr: { write: (s: string) => { err += s; } },
+    stdout: {
+      write: (s: string) => {
+        out += s;
+      },
+    },
+    stderr: {
+      write: (s: string) => {
+        err += s;
+      },
+    },
     setExitCode: (_code: number) => {},
   };
   return { io, stdout: () => out, stderr: () => err };
@@ -35,11 +43,7 @@ function assertNoDraftLeak(draft: string, stdout: string, stderr: string): void 
     } catch {
       return;
     }
-    if (
-      parsed !== null &&
-      typeof parsed === "object" &&
-      "metadata" in parsed
-    ) {
+    if (parsed !== null && typeof parsed === "object" && "metadata" in parsed) {
       assert.equal(
         JSON.stringify((parsed as { metadata: unknown }).metadata).includes(trimmed),
         false,
@@ -57,7 +61,21 @@ const draftArb = fc.string({ minLength: 30, maxLength: 200 }).filter((s) => s.tr
 // Goal values that are definitely not in the allowed enum.
 const invalidGoalArb = fc
   .string({ minLength: 1 })
-  .filter((s) => !["apology","boundary","clarification","invitation","decline","feedback","repair","check_in","logistics","hard_conversation"].includes(s));
+  .filter(
+    (s) =>
+      ![
+        "apology",
+        "boundary",
+        "clarification",
+        "invitation",
+        "decline",
+        "feedback",
+        "repair",
+        "check_in",
+        "logistics",
+        "hard_conversation",
+      ].includes(s),
+  );
 
 test("adversarial analyzer: plain Error thrown by analyzer does not leak draft to stderr", async () => {
   await fc.assert(
@@ -70,7 +88,9 @@ test("adversarial analyzer: plain Error thrown by analyzer does not leak draft t
       // Plain Error is re-thrown by RepairingAnalyzer before repair is attempted.
       // This repair API should never be called — it throws to surface any regression.
       const repairApi: ModelRepairAPI = {
-        repair: async () => { throw new Error("repair must not be called for plain Error"); },
+        repair: async () => {
+          throw new Error("repair must not be called for plain Error");
+        },
       };
       const { io, stdout, stderr } = makeIO(draft);
       await runCli([], io, new RepairingAnalyzer(adversarial, repairApi));
