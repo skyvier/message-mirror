@@ -73,7 +73,7 @@ test("adversarial analyzer: plain Error thrown by analyzer does not leak draft t
       // This repair API should never be called — it throws to surface any regression.
       const repairApi: ModelRepairAPI = {
         repair: async () => {
-          throw new Error("repair must not be called for plain Error");
+          assert.fail("repair must not be called for plain Error");
         },
       };
       const { io, stdout, stderr } = makeIO(draft);
