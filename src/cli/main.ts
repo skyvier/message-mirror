@@ -33,11 +33,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 }
 
-export async function runCli(
-  args: string[],
-  io: IO,
-  injectAnalyzer?: Analyzer,
-): Promise<void> {
+export async function runCli(args: string[], io: IO, injectAnalyzer?: Analyzer): Promise<void> {
   const calibrationResult = parseCliArgs(args);
   if (!calibrationResult.ok) {
     if (calibrationResult.kind === "stdout") {
