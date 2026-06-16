@@ -81,13 +81,19 @@ New `test:property` script in `package.json`:
 - Adversarial analyzer variant: `fc.oneof(...)` over four behaviors (see below)
 - Calibration: arbitrary valid calibration (all unspecified is fine; the property is about error handling, not calibration)
 
-**Three adversarial analyzer behaviors:**
+**Three adversarial analyzer behaviors (analyzer path):**
 
 | Variant | Analyzer throws | Repair behavior |
 |---------|----------------|-----------------|
 | 1 | `throw new Error(draft)` | no repair called (throws before returning) |
 | 2 | `throw new InvalidAnalyzerOutputError(draft)` | repair always returns `'{"broken":true}'` (schema-invalid JSON) → exhaustion |
 | 3 | `throw new InvalidAnalyzerOutputError(draft)` | repair always returns draft as plain text (not JSON) → exhaustion |
+
+**One invalid-args behavior (args path):**
+
+Generate an invalid `--goal` value (arbitrary string not in the allowed enum) plus arbitrary non-empty stdin. Run through the CLI. Assert `stderr` does not contain the draft.
+
+This guards against a regression where stdin is read before args are validated — currently impossible by construction, but worth locking in.
 
 All four variants follow the same assertion:
 
@@ -128,4 +134,3 @@ await runCli(io, adversarialAnalyzer);
 
 - Analyzer returning schema-valid output with draft text in `analysis.*` fields — accepted behavior (model-authored prose).
 - Analyzer returning draft text in `refusal.reason` — accepted behavior.
-- CLI arg parsing producing draft leaks — impossible by construction (validation runs before stdin is read).
