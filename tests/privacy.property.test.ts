@@ -8,7 +8,7 @@ import type { ModelRepairAPI } from "../src/analyzer/repairing.js";
 import type { Analyzer } from "../src/analyzer/types.js";
 import type { Calibration } from "../src/cli/calibration.js";
 import type { AnalyzerOutput } from "../src/output/schema.js";
-import { type IO, runCli } from "../src/cli/main.js";
+import { type IO, runCli } from "../src/cli/run.js";
 
 function makeIO(draft: string): { io: IO; stdout(): string; stderr(): string } {
   let out = "";
