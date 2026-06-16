@@ -12,11 +12,13 @@
     "format:check": "biome check --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --formatter-enabled=true --linter-enabled=false --assist-enabled=false --no-errors-on-unmatched .",
     "lint": "biome lint --vcs-enabled=true --vcs-client-kind=git --vcs-use-ignore-file=true --no-errors-on-unmatched .",
     "test": "pnpm build && node --test tests/*.test.mjs",
+    "test:property": "tsx --test tests/privacy.property.test.ts",
     "typecheck": "tsc --noEmit",
     "generate:schema": "tsx scripts/generate-schema.ts && biome format --write schema/message-mirror.v1.schema.json"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
+    "fast-check": "^4.8.0",
     "tsx": "^4.22.4"
   },
   "dependencies": {
