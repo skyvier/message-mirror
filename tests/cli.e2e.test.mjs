@@ -18,6 +18,21 @@ for (const goldenCase of goldenCases) {
     assert.equal(result.exitCode, goldenCase.exitCode);
     assert.equal(result.stdout, goldenCase.stdout);
     assert.equal(result.stderr, goldenCase.stderr);
+
+    if (goldenCase.name.startsWith("privacy-")) {
+      const draft = goldenCase.stdin.trim();
+      if (draft.length > 0) {
+        assert.equal(result.stderr.includes(draft), false, "draft must not appear in stderr");
+        if (result.stdout.length > 0) {
+          const parsed = JSON.parse(result.stdout);
+          assert.equal(
+            JSON.stringify(parsed.metadata ?? {}).includes(draft),
+            false,
+            "draft must not appear in metadata",
+          );
+        }
+      }
+    }
   });
 }
 
