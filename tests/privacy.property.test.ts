@@ -52,10 +52,9 @@ function assertNoDraftLeak(draft: string, stdout: string, stderr: string): void 
   }
 }
 
-// Arbitrary non-empty draft text with a minimum length that makes the sentinel detectable.
-// 30 chars avoids false positives where a short draft happens to be a substring of a fixed
-// error string (e.g. "error: local analyzer backend unavailable").
-const draftArb = fc.string({ minLength: 30, maxLength: 200 }).filter((s) => s.trim().length >= 30);
+// Wrap arbitrary text in a needle that cannot appear in any fixed error string,
+// guaranteeing no accidental overlap with stderr output.
+const draftArb = fc.string({ maxLength: 200 }).map((s) => `needle-${s}-needle`);
 
 // Goal values that are definitely not in the allowed enum.
 const invalidGoalArb = fc
