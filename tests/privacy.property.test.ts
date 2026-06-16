@@ -5,7 +5,7 @@ import fc from "fast-check";
 import { InvalidAnalyzerOutputError } from "../src/analyzer/errors.js";
 import { RepairingAnalyzer, type ModelRepairAPI } from "../src/analyzer/repairing.js";
 import type { Analyzer } from "../src/analyzer/types.js";
-import type { Calibration } from "../src/cli/calibration.js";
+import { goalValues, type Calibration } from "../src/cli/calibration.js";
 import type { AnalyzerOutput } from "../src/output/schema.js";
 import { type IO, runCli } from "../src/cli/run.js";
 
@@ -59,21 +59,7 @@ const draftArb = fc.string({ maxLength: 200 }).map((s) => `needle-${s}-needle`);
 // Goal values that are definitely not in the allowed enum.
 const invalidGoalArb = fc
   .string({ minLength: 1 })
-  .filter(
-    (s) =>
-      ![
-        "apology",
-        "boundary",
-        "clarification",
-        "invitation",
-        "decline",
-        "feedback",
-        "repair",
-        "check_in",
-        "logistics",
-        "hard_conversation",
-      ].includes(s),
-  );
+  .filter((s) => !(goalValues as readonly string[]).includes(s));
 
 test("adversarial analyzer: plain Error thrown by analyzer does not leak draft to stderr", async () => {
   await fc.assert(
