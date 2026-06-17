@@ -1,9 +1,11 @@
-import { toJSONSchema } from "zod";
+import { z, toJSONSchema } from "zod";
 import type { Calibration } from "../cli/calibration.js";
 import { InvalidAnalyzerOutputError } from "./errors.js";
 import type { ModelRepairAPI } from "./repairing.js";
 import type { Analyzer } from "./types.js";
 import { AnalyzerOutputSchema, type AnalyzerOutput } from "../output/schema.js";
+
+const OllamaGenerateResponseSchema = z.object({ response: z.string() });
 
 export interface ModelAPI {
   generate(prompt: string, format?: unknown): Promise<string>;
@@ -30,7 +32,7 @@ export class OllamaModelAPI implements ModelAPI {
     if (!response.ok) {
       throw new Error(`ollama request failed with status ${response.status}`);
     }
-    const data = (await response.json()) as { response: string };
+    const data = OllamaGenerateResponseSchema.parse(await response.json());
     return data.response;
   }
 }
