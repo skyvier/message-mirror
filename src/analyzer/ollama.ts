@@ -20,7 +20,7 @@ export class OllamaModelAPI implements ModelAPI {
       model: this.model,
       prompt,
       stream: false,
-      ...(format !== undefined && { format }),
+      ...(format !== undefined ? { format } : {}),
     };
     const response = await fetch(`${this.url}/api/generate`, {
       method: "POST",
