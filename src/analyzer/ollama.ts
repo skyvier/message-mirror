@@ -16,8 +16,12 @@ export class OllamaModelAPI implements ModelAPI {
 	) {}
 
 	async generate(prompt: string, format?: unknown): Promise<string> {
-		const body: Record<string, unknown> = { model: this.model, prompt, stream: false };
-		if (format !== undefined) body.format = format;
+		const body = {
+			model: this.model,
+			prompt,
+			stream: false,
+			...(format !== undefined && { format }),
+		};
 		const response = await fetch(`${this.url}/api/generate`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
