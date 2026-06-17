@@ -70,6 +70,9 @@ jobs:
       - name: Property tests
         run: nix develop --command pnpm run test:property
 
+      - name: Unit tests
+        run: nix develop --command pnpm run test:unit
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
