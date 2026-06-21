@@ -1,5 +1,13 @@
 # message-mirror
 
+`message-mirror` is a local-first CLI that analyzes a draft message and returns a structured JSON report of how it may land emotionally and socially. It suggests three alternative phrasings (direct, warm, boundaried) and refuses to assist with manipulation, coercion, or harassment.
+
+The draft is read from stdin. Nothing is stored, logged, or sent outside the local machine.
+
+```sh
+echo "Hey, are you still mad at me?" | message-mirror --relationship partner --goal repair
+```
+
 ## Rofi frontend
 
 A minimal rofi-based launcher for the CLI is available at `scripts/rofi-ui.sh`.
