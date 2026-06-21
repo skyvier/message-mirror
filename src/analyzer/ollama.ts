@@ -22,6 +22,7 @@ export class OllamaModelAPI implements ModelAPI {
       model: this.model,
       prompt,
       stream: false,
+      keep_alive: "30m",
       ...(format !== undefined ? { format } : {}),
     };
     const response = await fetch(`${this.url}/api/generate`, {
