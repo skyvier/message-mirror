@@ -37,7 +37,37 @@ export class OllamaModelAPI implements ModelAPI {
   }
 }
 
-const analyzerOutputJsonSchema = toJSONSchema(AnalyzerOutputSchema);
+// Ollama ≤0.21 rejects JSON Schema 2020-12 keywords prefixItems and boolean
+// items. Convert them to the Draft 07 equivalents before sending.
+const analyzerOutputJsonSchema = toOllamaSafeSchema(toJSONSchema(AnalyzerOutputSchema));
+
+function toOllamaSafeSchema(node: unknown): unknown {
+  if (typeof node !== "object" || node === null) return node;
+  if (Array.isArray(node)) return node.map(toOllamaSafeSchema);
+
+  const obj = node as Record<string, unknown>;
+  const hasPrefixItems = "prefixItems" in obj;
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(obj)) {
+    if (key === "$schema") continue;
+    if (key === "prefixItems") {
+      result["items"] = (value as unknown[]).map(toOllamaSafeSchema);
+      continue;
+    }
+    if (key === "items" && hasPrefixItems) {
+      result["additionalItems"] = value === false ? false : toOllamaSafeSchema(value);
+      continue;
+    }
+    if (key === "items" && value === false) {
+      result["additionalItems"] = false;
+      continue;
+    }
+    result[key] = toOllamaSafeSchema(value);
+  }
+
+  return result;
+}
 
 export class OllamaAnalyzer implements Analyzer {
   constructor(private readonly api: ModelAPI) {}
