@@ -21,12 +21,44 @@ The script detects Wayland vs X11 at runtime via `$WAYLAND_DISPLAY`.
 
 ### Install the CLI
 
-Build and link the CLI to your PATH from the repo root:
+The flake exposes `message-mirror` as a Nix package.
+
+**Ad-hoc (nix profile):**
 
 ```sh
-nix develop --command pnpm install
-nix develop --command pnpm run build
-nix develop --command pnpm link --global
+nix profile install github:skyvier/message-mirror
+```
+
+**NixOS system configuration** — add to your `configuration.nix`:
+
+```nix
+{ inputs, ... }:
+{
+  inputs.message-mirror.url = "github:skyvier/message-mirror";
+
+  environment.systemPackages = [
+    inputs.message-mirror.packages.${system}.default
+  ];
+}
+```
+
+Or in a flake-based NixOS config, add the input and wire it into `systemPackages`:
+
+```nix
+# flake.nix
+inputs.message-mirror.url = "github:skyvier/message-mirror";
+
+# configuration.nix
+environment.systemPackages = [
+  inputs.message-mirror.packages.x86_64-linux.default
+];
+```
+
+**From a local checkout:**
+
+```sh
+nix build
+nix profile install ./result
 ```
 
 Verify it is available:
