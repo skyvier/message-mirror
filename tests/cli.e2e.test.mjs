@@ -2,8 +2,14 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { readdir, readFile } from "node:fs/promises";
 import { test } from "node:test";
+import Ajv2020 from "ajv/dist/2020.js";
 
 const goldenDir = new URL("./golden/", import.meta.url);
+
+const schema = JSON.parse(
+  await readFile(new URL("../schema/message-mirror.v1.schema.json", import.meta.url), "utf8"),
+);
+const validateJsonSchema = new Ajv2020().compile(schema);
 
 const goldenCases = await discoverGoldenCases();
 
@@ -18,6 +24,15 @@ for (const goldenCase of goldenCases) {
     assert.equal(result.exitCode, goldenCase.exitCode);
     assert.equal(result.stdout, goldenCase.stdout);
     assert.equal(result.stderr, goldenCase.stderr);
+
+    if (goldenCase.stdoutIsJson) {
+      const parsed = JSON.parse(result.stdout);
+      const valid = validateJsonSchema(parsed);
+      assert.ok(
+        valid,
+        `stdout does not conform to JSON Schema:\n${JSON.stringify(validateJsonSchema.errors, null, 2)}`,
+      );
+    }
 
     if (goldenCase.name.startsWith("privacy-")) {
       const draft = goldenCase.stdin.trim();
@@ -35,6 +50,31 @@ for (const goldenCase of goldenCases) {
     }
   });
 }
+
+test("schema rejects success output with fewer than 3 alternatives", () => {
+  const invalid = {
+    schema_version: "message-mirror.v1",
+    ok: true,
+    metadata: {
+      input_source: "stdin",
+      privacy: { local_only: true, retained: false },
+      calibration: {
+        relationship: "unspecified",
+        goal: "unspecified",
+        desired_tone: "unspecified",
+      },
+    },
+    analysis: {
+      apparent_intent: "test",
+      emotional_tone: ["neutral"],
+      possible_interpretations: ["test"],
+      risks_or_ambiguities: [],
+      hidden_needs_or_assumptions: [],
+    },
+    alternatives: [],
+  };
+  assert.equal(validateJsonSchema(invalid), false, "schema must reject fewer than 3 alternatives");
+});
 
 async function discoverGoldenCases() {
   const entries = await readdir(goldenDir, { withFileTypes: true });
@@ -55,17 +95,29 @@ async function readGoldenCase(name) {
     readFixture(caseDir, "args"),
   ]);
 
-  const stdout =
-    (await readOptionalFixture(caseDir, "stdout.json")) ??
-    (await readOptionalFixture(caseDir, "stdout"));
-  if (stdout !== undefined) {
+  const stdoutJson = await readOptionalFixture(caseDir, "stdout.json");
+  if (stdoutJson !== undefined) {
     return {
       name,
       stdin,
       args: parseArgs(args),
       exitCode: 0,
-      stdout,
+      stdout: stdoutJson,
       stderr: "",
+      stdoutIsJson: true,
+    };
+  }
+
+  const stdoutPlain = await readOptionalFixture(caseDir, "stdout");
+  if (stdoutPlain !== undefined) {
+    return {
+      name,
+      stdin,
+      args: parseArgs(args),
+      exitCode: 0,
+      stdout: stdoutPlain,
+      stderr: "",
+      stdoutIsJson: false,
     };
   }
 
