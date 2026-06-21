@@ -41,15 +41,19 @@ export const SuccessOutputSchema = z
     ok: z.literal(true),
     metadata: MetadataSchema,
     analysis: AnalysisSchema,
-    alternatives: z.tuple([
-      z.object({ label: z.literal("direct"), text: z.string().min(1), why: z.string().min(1) }),
-      z.object({ label: z.literal("warm"), text: z.string().min(1), why: z.string().min(1) }),
-      z.object({
-        label: z.literal("boundaried"),
-        text: z.string().min(1),
-        why: z.string().min(1),
-      }),
-    ]),
+    // toJSONSchema emits prefixItems for z.tuple but omits minItems/maxItems.
+    // meta() merges these constraints so regeneration keeps them enforced.
+    alternatives: z
+      .tuple([
+        z.object({ label: z.literal("direct"), text: z.string().min(1), why: z.string().min(1) }),
+        z.object({ label: z.literal("warm"), text: z.string().min(1), why: z.string().min(1) }),
+        z.object({
+          label: z.literal("boundaried"),
+          text: z.string().min(1),
+          why: z.string().min(1),
+        }),
+      ])
+      .meta({ minItems: 3, maxItems: 3, items: false }),
   })
   .meta({ id: "SuccessOutput" });
 
